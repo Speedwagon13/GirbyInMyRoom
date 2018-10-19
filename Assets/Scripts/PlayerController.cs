@@ -23,11 +23,15 @@ public class PlayerController : MonoBehaviour {
 
 	public void LockCameraToPoint(Transform point) {
 		ball.LockBallPosition(true);
-		cam.LockCameraOnPoint(point);
+		cam.LockCameraInFrontOfPoint(point);
 	}
 
 	public void UnlockCamera() {
 		cam.UnlockCamera();
 		ball.LockBallPosition(false);
+	}
+
+	public void LockDialogCamera(Transform point) {
+
 	}
 }

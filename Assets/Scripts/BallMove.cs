@@ -17,7 +17,6 @@ public class BallMove : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		//Physics.gravity = new Vector3(0, -1, 0);
 		rb = GetComponent<Rigidbody>();
 	}
 	
@@ -38,7 +37,11 @@ public class BallMove : MonoBehaviour {
 		} else if (!falling) {
 			rb.drag = (movement == Vector3.zero ) ? stopDrag : 0;
 			rb.AddForce(movement*speed);
-		}	
+		}
+
+		if (rb.velocity.magnitude >= 2.5 && !falling) {
+			rb.velocity = rb.velocity.normalized * 2.5f;
+		}
 
 		positionDummy.position = transform.position;
 	}

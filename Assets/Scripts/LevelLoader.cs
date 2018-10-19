@@ -46,7 +46,6 @@ public class LevelLoader : MonoBehaviour {
 		while (timeRemaining > 0 ) {
 			timeRemaining -= Time.deltaTime;
 			alpha = Mathf.Clamp01(timeRemaining/transitionIn);
-			Debug.Log(timeRemaining);
 			Color clr = img.color;
 			clr.a = alpha;
 			img.color = clr;

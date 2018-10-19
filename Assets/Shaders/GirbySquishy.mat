@@ -68,8 +68,9 @@ Material:
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SquishDistance: 0.2
-    - _SquishY: -3.1
+    - _SquishDistance: -0.6336546
+    - _SquishDistanceY: 0.2
+    - _SquishY: -9.934065
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1

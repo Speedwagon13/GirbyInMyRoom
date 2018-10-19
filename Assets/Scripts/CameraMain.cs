@@ -9,12 +9,14 @@ public class CameraMain : MonoBehaviour {
 
 	public Transform girbyModel;
 
-	private Vector3 offset, newCamPos, origCamPos;
+	public float cameraLockTime = 0.3f;
+
+	private Vector3 offset, newCamPos, origCamPos, startLookPoint;
 	private float distance;
 
-	private bool locked = false, resetting = false;
+	private bool locked = false;
 	private Transform point;
-	private Quaternion oldXRot, oldYRot, origCamRot;
+	private Quaternion origCamRot;
 	void Start () {
 		offset = transform.position - player.position;
 		distance = offset.magnitude;
@@ -38,51 +40,46 @@ public class CameraMain : MonoBehaviour {
 		}
 
 		Transform xRot = transform.parent;
-		
-		if (resetting) {
-			transform.rotation = Quaternion.RotateTowards(transform.rotation, origCamRot, 20f*Time.deltaTime);
-			transform.position = Vector3.MoveTowards(transform.position, origCamPos, Time.deltaTime*10);
-			//player.rotation = Quaternion.RotateTowards(player.rotation, oldYRot, 10f*Time.deltaTime);
-			if (origCamRot == transform.rotation && origCamPos == transform.position) {
-				resetting = false;
-			}
-		} else if (!locked) {
-			player.Rotate(Vector3.up*Input.GetAxis("Mouse X"));
-			xRot.Rotate(Vector3.right*Input.GetAxis("Mouse Y"));
-		} else { //locked
-			//Vector3 dir = (point.position - transform.position).normalized;
-			
-			
-			transform.position = Vector3.MoveTowards(transform.position, newCamPos, Time.deltaTime*3);
-			Quaternion lookRot = Quaternion.LookRotation(point.position-transform.position);
-			transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, 3*Time.deltaTime);
-			Quaternion lookRotGirb = Quaternion.LookRotation(point.position-girbyModel.position);
-			girbyModel.rotation = Quaternion.Slerp(girbyModel.rotation, lookRotGirb, 10*Time.deltaTime);
+		if (!locked || (origCamRot == transform.rotation && origCamPos == transform.position)) {
+			player.Rotate(Vector3.up*1.5f*Input.GetAxis("Mouse X"));
+			xRot.Rotate(Vector3.right*1.5f*Input.GetAxis("Mouse Y"));
+			locked = false;
 		}
-		
 	}
 
-	public void LockCameraOnPoint(Transform point) {
+
+	public void LockCameraInFrontOfPoint(Transform point) {
 		locked = true;
 		this.point = point;
 
+		startLookPoint = transform.forward*2;
+
+		Vector3 newCameraPosition = point.forward*1.5f + point.position;
+
+		if (Vector3.Distance(newCameraPosition, transform.position) > Vector3.Distance(point.position - point.forward*1.5f, transform.position)) {
+			newCameraPosition = point.position - point.forward*1.5f;
+		}
+
 		origCamPos = transform.position;
 		origCamRot = transform.rotation;
+	
+		Quaternion endLookRot = Quaternion.LookRotation(point.position-newCameraPosition);
+		Quaternion startLookRot = transform.rotation;
 
-		oldXRot = transform.parent.rotation;
-		oldYRot = player.rotation;
-		float playerYdist = (point.position.y-player.position.y)/2;
-		Vector3 playerPos = Vector3.Scale(player.position, new Vector3(1, 0, 1));
-		Vector3 pointPos = Vector3.Scale(point.position, new Vector3(1, 0, 1));
-		Vector3 camTranslation = playerPos-pointPos;
+		float lookRotDistance = Vector3.Distance(endLookRot.eulerAngles.normalized, startLookRot.eulerAngles.normalized);
+		Debug.Log(endLookRot.eulerAngles + " : " + startLookRot.eulerAngles.normalized);
+		float distance = Vector3.Distance(transform.position, newCameraPosition);
+		//float rotDistance = Quaternion.LookRotation
 		
-		float playerXZdist = Vector3.Distance(new Vector3(player.position.x, 0, player.position.z), new Vector3(point.position.x, 0, point.position.z));
-		//xz
-		newCamPos = new Vector3(transform.position.x, point.position.y+playerYdist, transform.position.z);// + camTranslation*.5f;
+		SetCameraPositionRotation(newCameraPosition, endLookRot);
 	}
 
-	public void UnlockCamera() {
-		locked = false;
-		resetting = true;
+	public void UnlockCamera() {	
+		SetCameraPositionRotation(origCamPos, origCamRot);			
+	}
+
+	private void SetCameraPositionRotation(Vector3 newCameraPosition, Quaternion newRotation) {
+		StartCoroutine(AnimationUtilities.MoveTo3D(transform, newCameraPosition, cameraLockTime));
+		StartCoroutine(AnimationUtilities.RotateTo3D(transform, newRotation, cameraLockTime));	
 	}
 }
